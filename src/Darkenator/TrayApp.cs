@@ -26,6 +26,9 @@ public sealed class TrayApp : ApplicationContext
     private SettingsForm? _settingsForm;
     private Icon? _currentIcon;
 
+    /// <summary>What the tray icon currently depicts, so the timer does not rebuild it every tick.</summary>
+    private (AppTheme Active, bool TaskbarIsLight)? _iconState;
+
     /// <summary>The target from the previous evaluation, so switches are edge-triggered.</summary>
     private AppTheme? _lastTarget;
 
@@ -164,11 +167,23 @@ public sealed class TrayApp : ApplicationContext
         AppTheme active = ThemeSwitcher.Current;
         bool taskbarIsLight = ThemeSwitcher.CurrentSystemTheme == AppTheme.Light;
 
-        Icon fresh = TrayIcons.Create(active, taskbarIsLight);
-        Icon? previous = _currentIcon;
-        _currentIcon = fresh;
-        _notifyIcon.Icon = fresh;
-        previous?.Dispose();
+        // Redrawing costs two GDI objects, and the timer runs twice a minute forever, so only
+        // rebuild when what the icon depicts has actually changed.
+        if (_iconState != (active, taskbarIsLight))
+        {
+            Icon fresh = TrayIcons.Create(active, taskbarIsLight);
+            Icon? previous = _currentIcon;
+            _currentIcon = fresh;
+            _notifyIcon.Icon = fresh;
+            previous?.Dispose();
+
+            _iconState = (active, taskbarIsLight);
+
+            if (_notifyIcon.ContextMenuStrip is { } menu)
+            {
+                menu.Renderer = new ThemedMenuRenderer(UiTheme.For(active));
+            }
+        }
 
         string headline = _settings.Mode switch
         {
@@ -187,11 +202,6 @@ public sealed class TrayApp : ApplicationContext
             tip += $", {schedule.NextTarget.ToString().ToLowerInvariant()} at {next:HH:mm}";
         }
         _notifyIcon.Text = tip.Length > 63 ? tip[..63] : tip;
-
-        if (_notifyIcon.ContextMenuStrip is { } menu)
-        {
-            menu.Renderer = new ThemedMenuRenderer(UiTheme.For(active));
-        }
     }
 
     private void RefreshMenu()
