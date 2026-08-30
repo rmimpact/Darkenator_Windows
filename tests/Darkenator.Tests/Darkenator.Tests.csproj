@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Darkenator.Tests</RootNamespace>
+    <AssemblyName>Darkenator.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <!-- Pull in the sources under test directly, so they can be exercised from a plain
+       console host without a test framework or a running desktop session. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\Darkenator\AppTheme.cs" Link="AppTheme.cs" />
+    <Compile Include="..\..\src\Darkenator\SolarCalculator.cs" Link="SolarCalculator.cs" />
+    <Compile Include="..\..\src\Darkenator\TrayIcons.cs" Link="TrayIcons.cs" />
+  </ItemGroup>
+
+</Project>
