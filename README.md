@@ -3,13 +3,16 @@
 A small Windows tray app that switches the system between light and dark mode — manually, or
 automatically at sunset and sunrise for your location.
 
-Built for Windows 10/11. No installer, no admin rights, no background service.
+Built for 64-bit Windows 10/11. The installer and the app need no admin rights and install no
+background service.
 
-## Getting it running
+## Download and install
 
-```bash
-S:\Darkenator_Windows\dist\Darkenator.exe
-```
+**[Download Darkenator for Windows](https://github.com/rmimpact/Darkenator_Windows/releases/latest/download/Darkenator-Setup.exe)**
+
+Run `Darkenator-Setup.exe`, follow the short installer, and launch Darkenator from the Start menu.
+The installer is currently unsigned, so Windows may show a Microsoft Defender SmartScreen prompt;
+choose **More info**, confirm the filename, then choose **Run anyway**.
 
 The first launch opens the settings window and drops an icon in the notification area. New tray
 icons start out in the hidden-icons overflow: click the `^` chevron on the taskbar and drag
@@ -96,16 +99,16 @@ Both live in `%APPDATA%\Darkenator\`:
 
 ## Building
 
-Needs the .NET 6 SDK.
+Needs the .NET 10 SDK.
 
 ```bash
 powershell -ExecutionPolicy Bypass -File S:\Darkenator_Windows\build.ps1
 ```
 
 This regenerates the icon, runs the checks, and publishes a self-contained single-file exe to
-`dist\` (~61 MB, runs on any Windows 10/11 machine with no .NET installed).
+`dist\` (runs on any supported 64-bit Windows 10/11 machine with no .NET installation required).
 
-For a ~2 MB build that requires the .NET 6 Desktop Runtime instead:
+For a smaller build that requires the .NET 10 Desktop Runtime instead:
 
 ```bash
 powershell -ExecutionPolicy Bypass -File S:\Darkenator_Windows\build.ps1 -FrameworkDependent
@@ -120,6 +123,12 @@ dotnet run --project S:\Darkenator_Windows\tests\Darkenator.Tests -c Release
 Validates the solar calculations against published sun times, checks polar edge cases and a full
 year of dates, and renders the tray icons to PNGs under the test output's `icons\` folder so they
 can be inspected at real size.
+
+## Publishing a release
+
+Push a version tag such as `v1.0.1`. GitHub Actions builds and tests the app on Windows, creates the
+installer, and publishes it to GitHub Releases. The download link above always points to the newest
+release, so a website can use that exact URL without being changed for every version.
 
 ## Layout
 

@@ -1,0 +1,84 @@
+name: Build Windows installer
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (for example 1.0.1)"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Determine version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "push") {
+            $version = "${{ github.ref_name }}" -replace '^v', ''
+          } else {
+            $version = "${{ inputs.version }}" -replace '^v', ''
+          }
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Invalid version: $version"
+          }
+          "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "RELEASE_TAG=v$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Test and publish self-contained app
+        shell: pwsh
+        run: ./build.ps1 -Version $env:APP_VERSION
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $compiler)) {
+            choco install innosetup --no-progress --yes
+          }
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          $output = Join-Path $PWD "release"
+          New-Item -ItemType Directory -Path $output -Force | Out-Null
+          & $compiler "/DMyAppVersion=$env:APP_VERSION" "/O$output" "installer\Darkenator.iss"
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
+          $hash = (Get-FileHash "release\Darkenator-Setup.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  Darkenator-Setup.exe" | Set-Content "release\Darkenator-Setup.exe.sha256"
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Darkenator-${{ env.APP_VERSION }}-Windows-x64
+          path: |
+            release/Darkenator-Setup.exe
+            release/Darkenator-Setup.exe.sha256
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: Darkenator ${{ env.APP_VERSION }}
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            release/Darkenator-Setup.exe
+            release/Darkenator-Setup.exe.sha256

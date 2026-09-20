@@ -8,11 +8,16 @@
 
 .PARAMETER SkipTests
     Skip the solar-calculator and icon checks.
+
+.PARAMETER Version
+    Version stamped into the executable. Release automation supplies this from the Git tag.
 #>
 [CmdletBinding()]
 param(
     [switch]$FrameworkDependent,
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [ValidatePattern('^\d+\.\d+\.\d+$')]
+    [string]$Version = '1.0.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -32,19 +37,20 @@ if (-not $SkipTests) {
 Write-Host 'Publishing...' -ForegroundColor Cyan
 if (Test-Path $dist) { Remove-Item $dist -Recurse -Force }
 
-$args = @(
+$publishArgs = @(
     'publish', $project,
     '-c', 'Release',
     '-r', 'win-x64',
+    "/p:Version=$Version",
     '/p:PublishSingleFile=true',
     '/p:IncludeNativeLibrariesForSelfExtract=true',
     '/p:EnableCompressionInSingleFile=true',
     '/p:DebugType=None',
     '-o', $dist
 )
-$args += if ($FrameworkDependent) { '--self-contained:false' } else { '--self-contained:true' }
+$publishArgs += if ($FrameworkDependent) { '--self-contained:false' } else { '--self-contained:true' }
 
-dotnet @args
+dotnet @publishArgs
 if ($LASTEXITCODE -ne 0) { throw 'publish failed' }
 
 $exe = Join-Path $dist 'Darkenator.exe'
