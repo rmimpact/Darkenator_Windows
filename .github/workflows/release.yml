@@ -28,7 +28,7 @@ jobs:
       - name: Determine version
         shell: pwsh
         run: |
-          if ("${{ github.event_name }}" -eq "push") {
+          if ("${{ github.ref }}" -like "refs/tags/*") {
             $version = "${{ github.ref_name }}" -replace '^v', ''
           } elseif ("${{ github.event_name }}" -eq "workflow_dispatch") {
             $version = "${{ inputs.version }}" -replace '^v', ''
