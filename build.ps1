@@ -3,11 +3,14 @@
     Builds Darkenator and publishes a portable single-file exe to .\dist.
 
 .PARAMETER FrameworkDependent
-    Produce a ~2 MB exe that needs the .NET 6 Desktop Runtime installed, instead of the
-    default ~63 MB self-contained build that runs on any Windows 10/11 machine as-is.
+    Produce a smaller exe that needs the .NET 10 Desktop Runtime installed, instead of the
+    default self-contained build that runs on any Windows 10/11 machine as-is.
 
 .PARAMETER SkipTests
     Skip the solar-calculator and icon checks.
+
+.PARAMETER SkipIcon
+    Skip regenerating the application icon. Used by CI after its separate icon-build step.
 
 .PARAMETER Version
     Version stamped into the executable. Release automation supplies this from the Git tag.
@@ -16,6 +19,7 @@
 param(
     [switch]$FrameworkDependent,
     [switch]$SkipTests,
+    [switch]$SkipIcon,
     [ValidatePattern('^\d+\.\d+\.\d+$')]
     [string]$Version = '1.0.0'
 )
@@ -25,8 +29,10 @@ $root = $PSScriptRoot
 $project = Join-Path $root 'src\Darkenator\Darkenator.csproj'
 $dist = Join-Path $root 'dist'
 
-Write-Host 'Generating the application icon...' -ForegroundColor Cyan
-& (Join-Path $root 'tools\make-icon.ps1')
+if (-not $SkipIcon) {
+    Write-Host 'Generating the application icon...' -ForegroundColor Cyan
+    & (Join-Path $root 'tools\make-icon.ps1')
+}
 
 if (-not $SkipTests) {
     Write-Host 'Running checks...' -ForegroundColor Cyan

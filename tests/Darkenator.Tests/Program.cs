@@ -219,6 +219,16 @@ internal static class Program
     private static void Check(string description, bool condition)
     {
         Console.WriteLine($"  [{(condition ? "PASS" : "FAIL")}] {description}");
-        if (!condition) _failures++;
+        if (!condition)
+        {
+            _failures++;
+
+            // Surface the useful assertion text in a public Actions annotation. GitHub's job
+            // log itself may require sign-in even for a public repository.
+            if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true")
+            {
+                Console.WriteLine($"::error title=Darkenator check failed::{description}");
+            }
+        }
     }
 }
