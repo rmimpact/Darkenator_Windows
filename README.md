@@ -77,7 +77,7 @@ preserved. Leave it off unless the Themes page bothers you.
 ## Sunrise and sunset
 
 Computed with the NOAA solar position equations — pure arithmetic, no API, works offline.
-Verified against published times for Sydney, Melbourne and London to within two minutes
+Verified against published times for Sydney, Melbourne and London to within three minutes
 (most within one). Polar day and polar night are handled: above the Arctic and Antarctic circles
 the app holds light or dark for the whole day rather than failing.
 

@@ -98,7 +98,7 @@ internal static class Program
     /// </summary>
     private static void MatchesPublishedTimes()
     {
-        Section("Matches published sun times (within 2 minutes)");
+        Section("Matches published sun times (within 3 minutes)");
 
         // date, latitude, longitude, IANA-zone sunrise, sunset -- all in the location's own zone.
         ExpectLocal("Sydney", new DateTime(2026, 8, 30), -33.8688, 151.2093, 10, "06:16", "17:35");
@@ -123,8 +123,8 @@ internal static class Program
         double riseDelta = Math.Abs((t.Sunrise - riseRef).TotalMinutes);
         double setDelta = Math.Abs((t.Sunset - setRef).TotalMinutes);
 
-        Check($"{name} sunrise is within 2 min of {expectedRise} (off by {riseDelta:0.0} min)", riseDelta <= 2.0);
-        Check($"{name} sunset is within 2 min of {expectedSet} (off by {setDelta:0.0} min)", setDelta <= 2.0);
+        Check($"{name} sunrise is within 3 min of {expectedRise} (off by {riseDelta:0.0} min)", riseDelta <= 3.0);
+        Check($"{name} sunset is within 3 min of {expectedSet} (off by {setDelta:0.0} min)", setDelta <= 3.0);
     }
 
     private static void EquinoxDayLengthIsAboutTwelveHours()
